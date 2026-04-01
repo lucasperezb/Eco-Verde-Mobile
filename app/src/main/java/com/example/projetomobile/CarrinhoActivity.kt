@@ -33,7 +33,7 @@ class CarrinhoActivity : AppCompatActivity() {
             insets
         }
 
-        val cardItemCarrinhoAlface = findViewById<MaterialCardView>(R.id.cardItemCarrinhoAlface)
+        val cardItemCarrinhoAlface = findViewById<MaterialCardView>(R.id.cardItemCarrinhoAlface) //referencia o card do item alface o findViewById é um metodo que procura um view no layout pelo ID
         val cardItemCarrinhoMorango = findViewById<MaterialCardView>(R.id.cardItemCarrinhoMorango)
         val txtSubtotalCarrinho = findViewById<TextView>(R.id.txtSubtotalCarrinho)
         val txtFreteCarrinho = findViewById<TextView>(R.id.txtFreteCarrinho)
@@ -42,7 +42,7 @@ class CarrinhoActivity : AppCompatActivity() {
         subtotalAtual = precoAlface + precoMorango
         atualizarResumo(txtSubtotalCarrinho, txtFreteCarrinho, txtTotalCarrinho)
 
-        findViewById<MaterialButton>(R.id.btnRemoverItemCarrinhoAlface).setOnClickListener {
+        findViewById<MaterialButton>(R.id.btnRemoverItemCarrinhoAlface).setOnClickListener { // essa funcao e chamada quando o botao for clicado
             if (!alfaceRemovido) {
                 alfaceRemovido = true
                 subtotalAtual -= precoAlface
@@ -98,7 +98,3 @@ class CarrinhoActivity : AppCompatActivity() {
         return NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR")).format(valor)
     }
 }
-
-
-
-

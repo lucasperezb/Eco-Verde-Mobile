@@ -9,6 +9,7 @@ import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class PerfilActivity : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -20,6 +21,7 @@ class PerfilActivity : AppCompatActivity() {
         }
 
         val bnvPerfil = findViewById<BottomNavigationView>(R.id.bnvPerfil)
+
         bnvPerfil.selectedItemId = R.id.menuPerfil
         bnvPerfil.setOnItemSelectedListener { item ->
             when (item.itemId) {

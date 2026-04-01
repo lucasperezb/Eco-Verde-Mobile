@@ -1,7 +1,7 @@
 <resources>
-    <string name="app_name">ProjetoMobile</string>
-    <string name="cd_logo_fazenda">Logo do aplicativo Fazenda Urbana</string>
-    <string name="titulo_login">Fazenda Urbana</string>
+    <string name="app_name">Eco Verde</string>
+    <string name="cd_logo_fazenda">Logo do aplicativo Eco Verde</string>
+    <string name="titulo_login">Eco Verde</string>
     <string name="subtitulo_login">Cultive com tecnologia e sustentabilidade</string>
     <string name="boas_vindas_login">Entrar na sua conta</string>
     <string name="hint_email">E-mail</string>
@@ -23,7 +23,7 @@
     <string name="hint_email_recuperacao">E-mail cadastrado</string>
     <string name="btn_enviar_recuperacao">Enviar recuperacao</string>
     <string name="voltar_login_recuperacao">Voltar para login</string>
-    <string name="titulo_home_loja">Loja da Fazenda Urbana</string>
+    <string name="titulo_home_loja">Loja da Eco Verde</string>
     <string name="subtitulo_home_loja">Produtos frescos para sua horta e sua casa</string>
     <string name="titulo_resumo_carrinho">Resumo do carrinho</string>
     <string name="itens_carrinho_home">Itens: 2 produtos</string>
@@ -59,4 +59,21 @@
     <string name="nome_perfil_mock">Lucas Perez</string>
     <string name="email_perfil_mock">lucas@fazendaurbana.com</string>
     <string name="info_perfil_mock">Acompanhe seus pedidos e dados da conta por aqui.</string>
+    <string name="btn_editar_perfil">Editar perfil</string>
+    <string name="btn_excluir_conta">Excluir conta</string>
+    <string name="dialog_editar_perfil_titulo">Editar perfil</string>
+    <string name="dialog_nome">Nome</string>
+    <string name="dialog_nova_senha">Nova senha</string>
+    <string name="dialog_confirmar_senha">Confirmar senha</string>
+    <string name="dialog_btn_salvar">Salvar</string>
+    <string name="dialog_btn_cancelar">Cancelar</string>
+    <string name="dialog_excluir_titulo">Excluir conta</string>
+    <string name="dialog_excluir_mensagem">Tem certeza que deseja excluir sua conta? Esta ação nao pode ser desfeita.</string>
+    <string name="dialog_excluir_confirmar">Excluir</string>
+    <string name="dialog_excluir_cancelar">Cancelar</string>
+    <string name="msg_perfil_atualizado">Perfil atualizado com sucesso.</string>
+    <string name="msg_conta_excluida">Conta excluida com sucesso.</string>
+    <string name="erro_nome_vazio">Informe seu nome.</string>
+    <string name="erro_senha_curta">A senha deve ter pelo menos 6 caracteres.</string>
+    <string name="erro_senha_diferente">As senhas nao conferem.</string>
 </resources>

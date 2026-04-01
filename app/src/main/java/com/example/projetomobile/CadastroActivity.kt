@@ -21,11 +21,11 @@ class CadastroActivity : AppCompatActivity() {
         }
 
         findViewById<TextView>(R.id.txtVoltarLogin).setOnClickListener {
-            finish()
+            finish()//fecha tela atual
         }
 
         findViewById<MaterialButton>(R.id.btnCriarContaCadastro).setOnClickListener {
-            startActivity(Intent(this, HomeActivity::class.java))
+            startActivity(Intent(this, HomeActivity::class.java)) //this se refere a tela atual, e HomeActivity é a tela para onde queremos ir
         }
     }
 }

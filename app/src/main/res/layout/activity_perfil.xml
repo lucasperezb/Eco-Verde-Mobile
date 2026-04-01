@@ -73,6 +73,42 @@
 
     </com.google.android.material.card.MaterialCardView>
 
+    <LinearLayout
+        android:id="@+id/llAcoesPerfil"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="18dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="18dp"
+        android:orientation="vertical"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bnvPerfil"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/cardPerfil">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnEditarPerfil"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_editar_perfil"
+            android:textAllCaps="false" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExcluirConta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/btn_excluir_conta"
+            android:textAllCaps="false"
+            app:backgroundTint="@android:color/transparent"
+            app:strokeColor="@color/green_primary"
+            app:strokeWidth="1dp"
+            app:iconTint="@color/green_primary"
+            android:textColor="@color/green_primary" />
+
+    </LinearLayout>
+
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bnvPerfil"
         android:layout_width="0dp"

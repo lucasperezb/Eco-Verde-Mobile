@@ -1,7 +1,13 @@
 <resources>
     <style name="Base.Theme.ProjetoMobile" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="colorPrimary">@color/green_primary</item>
-        <item name="colorOnPrimary">@color/green_on_primary</item>
+        <item name="colorPrimary">@color/brand_primary</item>
+        <item name="colorOnPrimary">@color/brand_on_primary</item>
+        <item name="colorSecondary">@color/brand_secondary</item>
+        <item name="colorOnSecondary">@color/brand_on_secondary</item>
+        <item name="android:colorBackground">@color/brand_background</item>
+        <item name="colorSurface">@color/brand_surface</item>
+        <item name="android:textColorPrimary">@color/brand_text_primary</item>
+        <item name="android:textColorSecondary">@color/brand_text_secondary</item>
     </style>
 
     <style name="Theme.ProjetoMobile" parent="Base.Theme.ProjetoMobile" />
