@@ -77,24 +77,68 @@ class CadastroActivity : AppCompatActivity() {
             // Se não houver erros, criar conta
             if (!erroValidacao) {
                 try {
-                    val db = DatabaseHelper(this)
-                    val novoUser = User(nome = nome, email = email, password = senha)
-                    val id = db.insertUser(novoUser)
-                    if (id != -1L) {
-                        // Mostrar AlertDialog de sucesso
-                        AlertDialog.Builder(this)
-                            .setTitle("Sucesso!")
-                            .setMessage("Conta criada com sucesso! Agora faça login com suas credenciais.")
-                            .setPositiveButton("OK") { _, _ ->
-                                // Navegar para MainActivity (tela de login)
-                                startActivity(Intent(this, MainActivity::class.java))
-                                finish()
+                    // Perguntar se deseja criar conta de administrador
+                    AlertDialog.Builder(this)
+                        .setTitle("Tipo de conta")
+                        .setMessage("Deseja criar uma conta de administrador?")
+                        .setPositiveButton("Sim") { _, _ ->
+                            // Solicitar código secreto para criar admin
+                            val input = android.widget.EditText(this)
+                            input.hint = "Código de administrador"
+                            AlertDialog.Builder(this)
+                                .setTitle("Código de administrador")
+                                .setView(input)
+                                .setPositiveButton("OK") { _, _ ->
+                                    val codigo = input.text.toString().trim()
+                                    if (codigo == "SUPERADMIN2026") {
+                                        val userDb = UserDatabaseHelper(this)
+                                        val novoUser = User(nome = nome, email = email, password = senha, role = "admin")
+                                        val id = userDb.insertUser(novoUser)
+                                        if (id != -1L) {
+                                            AlertDialog.Builder(this)
+                                                .setTitle("Sucesso!")
+                                                .setMessage("Conta de administrador criada com sucesso. Faça login.")
+                                                .setPositiveButton("OK") { _, _ ->
+                                                    startActivity(Intent(this, MainActivity::class.java))
+                                                    finish()
+                                                }
+                                                .setCancelable(false)
+                                                .show()
+                                        } else {
+                                            Toast.makeText(this, "Erro ao criar conta. Email pode estar duplicado.", Toast.LENGTH_LONG).show()
+                                        }
+                                    } else {
+                                        Toast.makeText(this, "Código inválido. Conta de administrador não criada.", Toast.LENGTH_LONG).show()
+                                    }
+                                }
+                                .setNegativeButton("Cancelar", null)
+                                .show()
+                        }
+                        .setNegativeButton("Não") { _, _ ->
+                            try {
+                                val userDb = UserDatabaseHelper(this)
+                                val novoUser = User(nome = nome, email = email, password = senha)
+                                val id = userDb.insertUser(novoUser)
+                                if (id != -1L) {
+                                    // Mostrar AlertDialog de sucesso
+                                    AlertDialog.Builder(this)
+                                        .setTitle("Sucesso!")
+                                        .setMessage("Conta criada com sucesso! Agora faça login com suas credenciais.")
+                                        .setPositiveButton("OK") { _, _ ->
+                                            // Navegar para MainActivity (tela de login)
+                                            startActivity(Intent(this, MainActivity::class.java))
+                                            finish()
+                                        }
+                                        .setCancelable(false)
+                                        .show()
+                                } else {
+                                    Toast.makeText(this, "Erro ao criar conta. Email pode estar duplicado.", Toast.LENGTH_LONG).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(this, "Erro: ${e.message}", Toast.LENGTH_LONG).show()
                             }
-                            .setCancelable(false)
-                            .show()
-                    } else {
-                        Toast.makeText(this, "Erro ao criar conta. Email pode estar duplicado.", Toast.LENGTH_LONG).show()
-                    }
+                        }
+                        .show()
                 } catch (e: Exception) {
                     Toast.makeText(this, "Erro: ${e.message}", Toast.LENGTH_LONG).show()
                 }

@@ -62,8 +62,8 @@ class MainActivity : AppCompatActivity() {
 
         if (!erroValidacao) {
             try {
-                val db = DatabaseHelper(this)
-                val user = db.authenticateUser(email, senha)
+                val userDb = UserDatabaseHelper(this)
+                val user = userDb.authenticateUser(email, senha)
 
                 if (user != null) {
                     // Login bem-sucedido
@@ -77,8 +77,12 @@ class MainActivity : AppCompatActivity() {
                     }
                     
                     Toast.makeText(this, "Bem-vindo, ${user.nome}!", Toast.LENGTH_LONG).show()
-                    // Navegar para HomeActivity
-                    startActivity(Intent(this, HomeActivity::class.java))
+                    // Navegar para HomeActivity ou AdminActivity conforme role
+                    if (user.role == "admin") {
+                        startActivity(Intent(this, AdminActivity::class.java))
+                    } else {
+                        startActivity(Intent(this, HomeActivity::class.java))
+                    }
                     finish()
                 } else {
                     // Email ou senha incorretos

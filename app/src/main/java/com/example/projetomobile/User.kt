@@ -12,7 +12,8 @@ data class User(
     var id: Long? = null,
     val nome: String,
     val email: String,
-    val password: String
+    val password: String,
+    val role: String = "user" // "user" or "admin"
 )
 
 

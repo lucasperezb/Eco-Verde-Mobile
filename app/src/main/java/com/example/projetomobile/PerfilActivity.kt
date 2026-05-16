@@ -59,8 +59,8 @@ class PerfilActivity : AppCompatActivity() {
 
         if (userId != -1L) {
             try {
-                val db = DatabaseHelper(this)
-                val user = db.getUser(userId)
+                val userDb = UserDatabaseHelper(this)
+                val user = userDb.getUser(userId)
 
                 if (user != null) {
                     // Exibir dados do usuário

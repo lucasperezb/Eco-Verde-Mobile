@@ -6,10 +6,21 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import android.view.LayoutInflater
+import android.widget.LinearLayout
+import android.widget.TextView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
+import java.util.Locale
 
 class HomeActivity : AppCompatActivity() {
+    private lateinit var productDb: ProductDatabaseHelper
+    private lateinit var llLista: LinearLayout
+    private lateinit var inflater: LayoutInflater
+    private var allProducts: List<Product> = emptyList()
+    private var visibleCount = 0
+    private val pageSize = 5
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -24,17 +35,11 @@ class HomeActivity : AppCompatActivity() {
             startActivity(Intent(this, CarrinhoActivity::class.java))
         }
 
-        findViewById<MaterialButton>(R.id.btnAdicionarCarrinhoAlface).setOnClickListener {
-            startActivity(Intent(this, CarrinhoActivity::class.java))
-        }
+        productDb = ProductDatabaseHelper(this)
+        llLista = findViewById(R.id.llListaProdutosHome)
+        inflater = LayoutInflater.from(this)
 
-        findViewById<MaterialButton>(R.id.btnAdicionarCarrinhoTomate).setOnClickListener {
-            startActivity(Intent(this, CarrinhoActivity::class.java))
-        }
-
-        findViewById<MaterialButton>(R.id.btnAdicionarCarrinhoMorango).setOnClickListener {
-            startActivity(Intent(this, CarrinhoActivity::class.java))
-        }
+        carregarProdutos(primeiraPagina = true)
 
         val bnvHomeLoja = findViewById<BottomNavigationView>(R.id.bnvHomeLoja)
         bnvHomeLoja.selectedItemId = R.id.menuProdutos
@@ -53,6 +58,45 @@ class HomeActivity : AppCompatActivity() {
 
                 else -> false
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        carregarProdutos(primeiraPagina = true)
+    }
+
+    private fun carregarProdutos(primeiraPagina: Boolean) {
+        allProducts = productDb.getAllProducts()
+        if (primeiraPagina) {
+            visibleCount = minOf(pageSize, allProducts.size)
+        }
+
+        llLista.removeAllViews()
+
+        allProducts.take(visibleCount).forEach { produto ->
+            val item = inflater.inflate(R.layout.product_item, llLista, false)
+            val nome = item.findViewById<TextView>(R.id.txtNomeProdutoItem)
+            val preco = item.findViewById<TextView>(R.id.txtPrecoProdutoItem)
+            val btnAdd = item.findViewById<MaterialButton>(R.id.btnAdicionarProdutoItem)
+            nome.text = produto.nome
+            preco.text = String.format(Locale.getDefault(), "R$ %.2f", produto.preco)
+            btnAdd.setOnClickListener {
+                startActivity(Intent(this, CarrinhoActivity::class.java))
+            }
+            llLista.addView(item)
+        }
+
+        if (visibleCount < allProducts.size) {
+            val btnCarregarMais = MaterialButton(this).apply {
+                setText(R.string.carregar_mais_produtos)
+                setAllCaps(false)
+                setOnClickListener {
+                    visibleCount = minOf(visibleCount + pageSize, allProducts.size)
+                    carregarProdutos(primeiraPagina = false)
+                }
+            }
+            llLista.addView(btnCarregarMais)
         }
     }
 }
