@@ -2,26 +2,24 @@ package com.example.projetomobile
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
-import com.google.android.material.card.MaterialCardView
+import org.json.JSONArray
+import org.json.JSONObject
 import java.text.NumberFormat
 import java.util.Locale
 
 class CarrinhoActivity : AppCompatActivity() {
-    private val precoAlface = 6.90
-    private val precoMorango = 10.00
     private val freteBase = 12.00
-
     private var subtotalAtual = 0.0
-    private var alfaceRemovido = false
-    private var morangoRemovido = false
+    private var carrinhoItems = JSONArray()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,31 +31,16 @@ class CarrinhoActivity : AppCompatActivity() {
             insets
         }
 
-        val cardItemCarrinhoAlface = findViewById<MaterialCardView>(R.id.cardItemCarrinhoAlface) //referencia o card do item alface o findViewById é um metodo que procura um view no layout pelo ID
-        val cardItemCarrinhoMorango = findViewById<MaterialCardView>(R.id.cardItemCarrinhoMorango)
         val txtSubtotalCarrinho = findViewById<TextView>(R.id.txtSubtotalCarrinho)
         val txtFreteCarrinho = findViewById<TextView>(R.id.txtFreteCarrinho)
         val txtTotalCarrinho = findViewById<TextView>(R.id.txtTotalCarrinho)
+        val btnFinalizarCompra = findViewById<MaterialButton>(R.id.btnFinalizarCompra)
+        val llProdutosCarrinho = findViewById<LinearLayout>(R.id.llListaProdutosCarrinho)
 
-        subtotalAtual = precoAlface + precoMorango
-        atualizarResumo(txtSubtotalCarrinho, txtFreteCarrinho, txtTotalCarrinho)
+        carregarCarrinho(llProdutosCarrinho, txtSubtotalCarrinho, txtFreteCarrinho, txtTotalCarrinho)
 
-        findViewById<MaterialButton>(R.id.btnRemoverItemCarrinhoAlface).setOnClickListener { // essa funcao e chamada quando o botao for clicado
-            if (!alfaceRemovido) {
-                alfaceRemovido = true
-                subtotalAtual -= precoAlface
-                cardItemCarrinhoAlface.visibility = View.GONE
-                atualizarResumo(txtSubtotalCarrinho, txtFreteCarrinho, txtTotalCarrinho)
-            }
-        }
-
-        findViewById<MaterialButton>(R.id.btnRemoverItemCarrinhoMorango).setOnClickListener {
-            if (!morangoRemovido) {
-                morangoRemovido = true
-                subtotalAtual -= precoMorango
-                cardItemCarrinhoMorango.visibility = View.GONE
-                atualizarResumo(txtSubtotalCarrinho, txtFreteCarrinho, txtTotalCarrinho)
-            }
+        btnFinalizarCompra.setOnClickListener {
+            finalizarCompra()
         }
 
         val bnvCarrinho = findViewById<BottomNavigationView>(R.id.bnvCarrinho)
@@ -68,15 +51,151 @@ class CarrinhoActivity : AppCompatActivity() {
                     startActivity(Intent(this, HomeActivity::class.java))
                     true
                 }
-
                 R.id.menuCarrinho -> true
                 R.id.menuPerfil -> {
                     startActivity(Intent(this, PerfilActivity::class.java))
                     true
                 }
-
                 else -> false
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val txtSubtotalCarrinho = findViewById<TextView>(R.id.txtSubtotalCarrinho)
+        val txtFreteCarrinho = findViewById<TextView>(R.id.txtFreteCarrinho)
+        val txtTotalCarrinho = findViewById<TextView>(R.id.txtTotalCarrinho)
+        val llProdutosCarrinho = findViewById<LinearLayout>(R.id.llListaProdutosCarrinho)
+        carregarCarrinho(llProdutosCarrinho, txtSubtotalCarrinho, txtFreteCarrinho, txtTotalCarrinho)
+    }
+
+    private fun carregarCarrinho(llProdutos: LinearLayout, txtSubtotal: TextView, txtFrete: TextView, txtTotal: TextView) {
+        val sharedPref = getSharedPreferences("eco_verde_cart", MODE_PRIVATE)
+        val carrinhoJson = sharedPref.getString("carrinho_items", "[]") ?: "[]"
+        
+        llProdutos.removeAllViews()
+        subtotalAtual = 0.0
+
+        try {
+            carrinhoItems = JSONArray(carrinhoJson)
+            
+            if (carrinhoItems.length() == 0) {
+                val emptyText = TextView(this).apply {
+                    text = "Seu carrinho está vazio"
+                    textSize = 14f
+                    setPadding(16, 16, 16, 16)
+                }
+                llProdutos.addView(emptyText)
+                atualizarResumo(txtSubtotal, txtFrete, txtTotal)
+                return
+            }
+
+            for (i in 0 until carrinhoItems.length()) {
+                val obj = carrinhoItems.getJSONObject(i)
+                val nome = obj.getString("nome")
+                val preco = obj.getDouble("preco")
+                val qtd = obj.getInt("quantidade")
+                val id = obj.getLong("id")
+                val total = preco * qtd
+                subtotalAtual += total
+
+                val tvProduto = TextView(this).apply {
+                    text = "$nome x $qtd = R$ ${String.format("%.2f", total)}"
+                    textSize = 14f
+                    setPadding(8, 8, 8, 8)
+                }
+                llProdutos.addView(tvProduto)
+
+                val btnRemover = MaterialButton(this).apply {
+                    text = "Remover"
+                    setAllCaps(false)
+                    setOnClickListener {
+                        removerDoCarrinho(i)
+                    }
+                }
+                llProdutos.addView(btnRemover)
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Erro ao carregar carrinho", Toast.LENGTH_SHORT).show()
+        }
+
+        atualizarResumo(txtSubtotal, txtFrete, txtTotal)
+    }
+
+    private fun removerDoCarrinho(index: Int) {
+        val sharedPref = getSharedPreferences("eco_verde_cart", MODE_PRIVATE)
+        
+        if (index >= 0 && index < carrinhoItems.length()) {
+            carrinhoItems.remove(index)
+        }
+
+        with(sharedPref.edit()) {
+            putString("carrinho_items", carrinhoItems.toString())
+            apply()
+        }
+
+        val txtSubtotalCarrinho = findViewById<TextView>(R.id.txtSubtotalCarrinho)
+        val txtFreteCarrinho = findViewById<TextView>(R.id.txtFreteCarrinho)
+        val txtTotalCarrinho = findViewById<TextView>(R.id.txtTotalCarrinho)
+        val llProdutosCarrinho = findViewById<LinearLayout>(R.id.llListaProdutosCarrinho)
+        
+        carregarCarrinho(llProdutosCarrinho, txtSubtotalCarrinho, txtFreteCarrinho, txtTotalCarrinho)
+        Toast.makeText(this, "Produto removido", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun finalizarCompra() {
+        if (subtotalAtual <= 0.0) {
+            Toast.makeText(this, "Carrinho vazio. Adicione produtos antes de finalizar.", Toast.LENGTH_LONG).show()
+            return
+        }
+
+        val sharedPref = getSharedPreferences("eco_verde_prefs", MODE_PRIVATE)
+        val userId = sharedPref.getLong("user_id", -1L)
+
+        if (userId == -1L) {
+            Toast.makeText(this, "Usuário não encontrado", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val protocolo = generateProtocolo()
+        val dataCompra = getCurrentDate()
+
+        val frete = if (subtotalAtual > 0.0) freteBase else 0.0
+        val total = subtotalAtual + frete
+
+        val purchase = Purchase(
+            userId = userId,
+            protocolo = protocolo,
+            dataCompra = dataCompra,
+            subtotal = subtotalAtual,
+            frete = frete,
+            total = total,
+            produtos = carrinhoItems.toString(),
+            status = "confirmada"
+        )
+
+        val purchaseDb = PurchaseDatabaseHelper(this)
+        val id = purchaseDb.insertPurchase(purchase)
+        
+        if (id != -1L) {
+            Toast.makeText(this, getString(R.string.msg_compra_realizada, protocolo), Toast.LENGTH_LONG).show()
+            
+            // Limpar carrinho
+            with(getSharedPreferences("eco_verde_cart", MODE_PRIVATE).edit()) {
+                putString("carrinho_items", "[]")
+                apply()
+            }
+            
+            subtotalAtual = 0.0
+            val txtSubtotalCarrinho = findViewById<TextView>(R.id.txtSubtotalCarrinho)
+            val txtFreteCarrinho = findViewById<TextView>(R.id.txtFreteCarrinho)
+            val txtTotalCarrinho = findViewById<TextView>(R.id.txtTotalCarrinho)
+            val llProdutosCarrinho = findViewById<LinearLayout>(R.id.llListaProdutosCarrinho)
+            
+            carregarCarrinho(llProdutosCarrinho, txtSubtotalCarrinho, txtFreteCarrinho, txtTotalCarrinho)
+        } else {
+            Toast.makeText(this, "Erro ao salvar compra", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -96,5 +215,16 @@ class CarrinhoActivity : AppCompatActivity() {
 
     private fun formatarMoeda(valor: Double): String {
         return NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR")).format(valor)
+    }
+
+    private fun generateProtocolo(): String {
+        val timestamp = System.currentTimeMillis().toString().takeLast(8)
+        val random = kotlin.random.Random.nextInt(10000, 99999)
+        return "PRO-$timestamp-$random"
+    }
+
+    private fun getCurrentDate(): String {
+        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+        return sdf.format(java.util.Date())
     }
 }

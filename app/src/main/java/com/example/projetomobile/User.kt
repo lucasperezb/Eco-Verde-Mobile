@@ -13,6 +13,7 @@ data class User(
     val nome: String,
     val email: String,
     val password: String,
+    val endereco: String = "",
     val role: String = "user" // "user" or "admin"
 )
 

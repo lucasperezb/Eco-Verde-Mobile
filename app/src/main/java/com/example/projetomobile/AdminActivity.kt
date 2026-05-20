@@ -74,6 +74,13 @@ class AdminActivity : AppCompatActivity() {
 
     private fun refreshProductList() {
         val produtos = productDb.getAllProducts()
+        if (produtos.isEmpty()) {
+            val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, listOf(getString(R.string.nenhum_produto_cadastrado)))
+            listView.adapter = adapter
+            listView.setOnItemClickListener(null)
+            return
+        }
+
         val items = produtos.map { "${it.id}: ${it.nome} (estoque: ${it.estoque}) - R$ ${it.preco}" }
         val adapter = ArrayAdapter(this, android.R.layout.simple_list_item_1, items)
         listView.adapter = adapter

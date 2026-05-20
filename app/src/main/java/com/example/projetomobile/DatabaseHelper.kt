@@ -13,8 +13,7 @@ import android.database.sqlite.SQLiteOpenHelper
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     companion object {
         const val DATABASE_NAME = "eco_verde.db"
-        // bump version because schema changed (added role column)
-        const val DATABASE_VERSION = 2
+        const val DATABASE_VERSION = 6
 
         // Tabela users
         const val TABLE_USER = "users"
@@ -53,11 +52,38 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     "$PRODUCT_COL_ESTOQUE INTEGER NOT NULL," +
                     "$PRODUCT_COL_IMAGEM_URL TEXT" +
                     ")"
+
+        // Tabela purchases
+        const val TABLE_PURCHASE = "purchases"
+        const val PURCHASE_COL_ID = "id"
+        const val PURCHASE_COL_USER_ID = "user_id"
+        const val PURCHASE_COL_PROTOCOLO = "protocolo"
+        const val PURCHASE_COL_DATA = "data_compra"
+        const val PURCHASE_COL_SUBTOTAL = "subtotal"
+        const val PURCHASE_COL_FRETE = "frete"
+        const val PURCHASE_COL_TOTAL = "total"
+        const val PURCHASE_COL_PRODUTOS = "produtos"
+        const val PURCHASE_COL_STATUS = "status"
+
+        private const val SQL_CREATE_TABLE_PURCHASE =
+            "CREATE TABLE $TABLE_PURCHASE (" +
+                    "$PURCHASE_COL_ID INTEGER PRIMARY KEY AUTOINCREMENT," +
+                    "$PURCHASE_COL_USER_ID INTEGER NOT NULL," +
+                    "$PURCHASE_COL_PROTOCOLO TEXT NOT NULL UNIQUE," +
+                    "$PURCHASE_COL_DATA TEXT NOT NULL," +
+                    "$PURCHASE_COL_SUBTOTAL REAL NOT NULL," +
+                    "$PURCHASE_COL_FRETE REAL NOT NULL," +
+                    "$PURCHASE_COL_TOTAL REAL NOT NULL," +
+                    "$PURCHASE_COL_PRODUTOS TEXT NOT NULL," +
+                    "$PURCHASE_COL_STATUS TEXT NOT NULL DEFAULT 'confirmada'," +
+                    "FOREIGN KEY($PURCHASE_COL_USER_ID) REFERENCES $TABLE_USER($USER_COL_ID) ON DELETE CASCADE" +
+                    ")"
     }
 
     override fun onCreate(db: SQLiteDatabase) {
         db.execSQL(SQL_CREATE_TABLE_USER)
         db.execSQL(SQL_CREATE_TABLE_PRODUCT)
+        db.execSQL(SQL_CREATE_TABLE_PURCHASE)
 
         // Criar usuário de teste para facilitar o desenvolvimento
         val userValues = ContentValues().apply {
@@ -70,14 +96,14 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
         // Criar produtos de teste
         val produtos = listOf(
-            Product(nome = "Alface", descricao = "Alface fresca e crocante", preco = 6.90, categoria = "Vegetais", estoque = 50),
-            Product(nome = "Tomate", descricao = "Tomate vermelho e suculento", preco = 8.50, categoria = "Vegetais", estoque = 40),
-            Product(nome = "Morango", descricao = "Morango doce e saboroso", preco = 10.00, categoria = "Frutas", estoque = 30),
-            Product(nome = "Cenoura", descricao = "Cenoura orgânica e nutritiva", preco = 5.50, categoria = "Vegetais", estoque = 60),
-            Product(nome = "Maçã", descricao = "Maçã vermelha e crocante", preco = 7.00, categoria = "Frutas", estoque = 45),
-            Product(nome = "Brócolis", descricao = "Brócolis fresco e verde", preco = 12.00, categoria = "Vegetais", estoque = 25)
+            Product(nome = "Alface Hidropônica", descricao = "Alface fresca e crocante", preco = 6.90, categoria = "Vegetais", estoque = 50),
+            Product(nome = "Tomate Cereja Orgânico", descricao = "Tomate vermelho e suculento", preco = 12.00, categoria = "Vegetais", estoque = 40),
+            Product(nome = "Morango Fresco", descricao = "Morango doce e saboroso", preco = 10.00, categoria = "Frutas", estoque = 30),
+            Product(nome = "Cenoura Orgânica", descricao = "Cenoura orgânica e nutritiva", preco = 5.50, categoria = "Vegetais", estoque = 60),
+            Product(nome = "Maçã Vermelha", descricao = "Maçã vermelha e crocante", preco = 7.00, categoria = "Frutas", estoque = 45),
+            Product(nome = "Brócolis Fresco", descricao = "Brócolis fresco e verde", preco = 12.00, categoria = "Vegetais", estoque = 25)
         )
-        
+
         for (produto in produtos) {
             val productValues = ContentValues().apply {
                 put(PRODUCT_COL_NOME, produto.nome)
@@ -92,9 +118,13 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     }
 
     override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_PRODUCT")
-        db.execSQL("DROP TABLE IF EXISTS $TABLE_USER")
-        onCreate(db)
+        if (oldVersion < 4) {
+            db.execSQL(SQL_CREATE_TABLE_PURCHASE)
+        }
+        if (oldVersion < 3) {
+            db.execSQL("DROP TABLE IF EXISTS $TABLE_PRODUCT")
+            db.execSQL(SQL_CREATE_TABLE_PRODUCT)
+        }
     }
 
 

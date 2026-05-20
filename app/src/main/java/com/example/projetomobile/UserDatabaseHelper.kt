@@ -10,6 +10,13 @@ import android.content.Context
 class UserDatabaseHelper(context: Context) {
     private val dbHelper = DatabaseHelper(context)
 
+    enum class PasswordChangeResult {
+        SUCCESS,
+        USER_NOT_FOUND,
+        INVALID_CURRENT_PASSWORD,
+        UPDATE_FAILED
+    }
+
     /**
      * Insere um novo usuário no banco de dados.
      * @param user Objeto User a ser inserido
@@ -165,6 +172,57 @@ class UserDatabaseHelper(context: Context) {
         )
         db.close()
         return rowsAffected
+    }
+
+    /**
+     * Atualiza somente a senha do usuário, validando a senha atual.
+     * @param userId ID do usuário
+     * @param currentPassword Senha atual em texto plano
+     * @param newPassword Nova senha em texto plano
+     * @return Resultado da operação
+     */
+    fun changePassword(userId: Long, currentPassword: String, newPassword: String): PasswordChangeResult {
+        val db = dbHelper.writableDatabase
+        val cursor = db.query(
+            DatabaseHelper.TABLE_USER,
+            arrayOf(DatabaseHelper.USER_COL_PASSWORD),
+            "${DatabaseHelper.USER_COL_ID} = ?",
+            arrayOf(userId.toString()),
+            null,
+            null,
+            null
+        )
+
+        try {
+            if (!cursor.moveToFirst()) {
+                return PasswordChangeResult.USER_NOT_FOUND
+            }
+
+            val storedPassword = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_PASSWORD))
+            if (hashPassword(currentPassword) != storedPassword) {
+                return PasswordChangeResult.INVALID_CURRENT_PASSWORD
+            }
+
+            val values = ContentValues().apply {
+                put(DatabaseHelper.USER_COL_PASSWORD, hashPassword(newPassword))
+            }
+
+            val rowsAffected = db.update(
+                DatabaseHelper.TABLE_USER,
+                values,
+                "${DatabaseHelper.USER_COL_ID} = ?",
+                arrayOf(userId.toString())
+            )
+
+            return if (rowsAffected > 0) {
+                PasswordChangeResult.SUCCESS
+            } else {
+                PasswordChangeResult.UPDATE_FAILED
+            }
+        } finally {
+            cursor.close()
+            db.close()
+        }
     }
 
     /**

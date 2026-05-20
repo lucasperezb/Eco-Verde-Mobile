@@ -2,6 +2,9 @@ package com.example.projetomobile
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
+import android.widget.EditText
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -13,6 +16,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
 
 class PerfilActivity : AppCompatActivity() {
+
+    private val sharedPrefsName = "eco_verde_prefs"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,9 +32,23 @@ class PerfilActivity : AppCompatActivity() {
         // Carregar dados do usuário logado
         carregarDadosUsuario()
 
-        // Botão de logout
+        // Botão para ver minhas compras
+        findViewById<MaterialButton>(R.id.btnMinhasCompras)?.setOnClickListener {
+            val sharedPref = getSharedPreferences(sharedPrefsName, MODE_PRIVATE)
+            val userId = sharedPref.getLong("user_id", -1L)
+            if (userId != -1L) {
+                mostrarMinhasCompras(userId)
+            }
+        }
+
+        // Botão de alteração de senha
+        findViewById<MaterialButton>(R.id.btnEditarPerfil).setOnClickListener {
+            mostrarDialogoAlterarSenha()
+        }
+
+        // Botão de exclusão da conta
         findViewById<MaterialButton>(R.id.btnExcluirConta).setOnClickListener {
-            mostrarDialogoLogout()
+            mostrarDialogoExcluirConta()
         }
 
         val bnvPerfil = findViewById<BottomNavigationView>(R.id.bnvPerfil)
@@ -54,7 +73,7 @@ class PerfilActivity : AppCompatActivity() {
     }
 
     private fun carregarDadosUsuario() {
-        val sharedPref = getSharedPreferences("eco_verde_prefs", MODE_PRIVATE)
+        val sharedPref = getSharedPreferences(sharedPrefsName, MODE_PRIVATE)
         val userId = sharedPref.getLong("user_id", -1L)
 
         if (userId != -1L) {
@@ -69,31 +88,119 @@ class PerfilActivity : AppCompatActivity() {
                     findViewById<TextView>(R.id.txtInfoPerfil).text = "ID do usuário: ${user.id}"
                 } else {
                     // Usuário não encontrado, fazer logout
-                    fazer_logout()
+                    limparSessaoEIrLogin()
                 }
             } catch (e: Exception) {
                 Toast.makeText(this, "Erro ao carregar perfil: ${e.message}", Toast.LENGTH_LONG).show()
             }
         } else {
             // Nenhum usuário logado
-            fazer_logout()
+            limparSessaoEIrLogin()
         }
     }
 
-    private fun mostrarDialogoLogout() {
+    private fun mostrarDialogoAlterarSenha() {
+        val sharedPref = getSharedPreferences(sharedPrefsName, MODE_PRIVATE)
+        val userId = sharedPref.getLong("user_id", -1L)
+
+        if (userId == -1L) {
+            limparSessaoEIrLogin()
+            return
+        }
+
+        val layout = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(16, 16, 16, 0)
+        }
+
+        val senhaAtualInput = EditText(this).apply {
+            hint = getString(R.string.hint_senha_atual)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        val novaSenhaInput = EditText(this).apply {
+            hint = getString(R.string.hint_nova_senha)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        val confirmarSenhaInput = EditText(this).apply {
+            hint = getString(R.string.hint_confirmar_nova_senha)
+            inputType = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+
+        layout.addView(senhaAtualInput)
+        layout.addView(novaSenhaInput)
+        layout.addView(confirmarSenhaInput)
+
         AlertDialog.Builder(this)
-            .setTitle("Logout")
-            .setMessage("Tem certeza que deseja sair?")
-            .setPositiveButton("Sim") { _, _ ->
-                fazer_logout()
+            .setTitle(R.string.titulo_alterar_senha)
+            .setView(layout)
+            .setPositiveButton(R.string.dialog_btn_salvar) { _, _ ->
+                val senhaAtual = senhaAtualInput.text.toString()
+                val novaSenha = novaSenhaInput.text.toString()
+                val confirmarSenha = confirmarSenhaInput.text.toString()
+
+                when {
+                    senhaAtual.isBlank() -> {
+                        Toast.makeText(this, R.string.erro_senha_atual_vazia, Toast.LENGTH_LONG).show()
+                    }
+                    novaSenha.length < 6 -> {
+                        Toast.makeText(this, R.string.erro_senha_curta, Toast.LENGTH_LONG).show()
+                    }
+                    novaSenha != confirmarSenha -> {
+                        Toast.makeText(this, R.string.erro_senha_diferente, Toast.LENGTH_LONG).show()
+                    }
+                    else -> {
+                        val result = UserDatabaseHelper(this).changePassword(userId, senhaAtual, novaSenha)
+                        when (result) {
+                            UserDatabaseHelper.PasswordChangeResult.SUCCESS -> {
+                                Toast.makeText(this, R.string.msg_senha_atualizada, Toast.LENGTH_LONG).show()
+                            }
+                            UserDatabaseHelper.PasswordChangeResult.INVALID_CURRENT_PASSWORD -> {
+                                Toast.makeText(this, R.string.erro_senha_atual_incorreta, Toast.LENGTH_LONG).show()
+                            }
+                            UserDatabaseHelper.PasswordChangeResult.USER_NOT_FOUND -> {
+                                Toast.makeText(this, R.string.erro_usuario_nao_encontrado, Toast.LENGTH_LONG).show()
+                                limparSessaoEIrLogin()
+                            }
+                            UserDatabaseHelper.PasswordChangeResult.UPDATE_FAILED -> {
+                                Toast.makeText(this, R.string.erro_salvar_senha, Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
+                }
             }
-            .setNegativeButton("Cancelar", null)
+            .setNegativeButton(R.string.dialog_btn_cancelar, null)
             .show()
     }
 
-    private fun fazer_logout() {
-        // Limpar dados do usuário
-        val sharedPref = getSharedPreferences("eco_verde_prefs", MODE_PRIVATE)
+    private fun mostrarDialogoExcluirConta() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.dialog_excluir_titulo)
+            .setMessage(R.string.dialog_excluir_mensagem)
+            .setPositiveButton(R.string.dialog_excluir_confirmar) { _, _ ->
+                excluirContaAtual()
+            }
+            .setNegativeButton(R.string.dialog_excluir_cancelar, null)
+            .show()
+    }
+
+    private fun excluirContaAtual() {
+        val sharedPref = getSharedPreferences(sharedPrefsName, MODE_PRIVATE)
+        val userId = sharedPref.getLong("user_id", -1L)
+
+        if (userId != -1L) {
+            val rows = UserDatabaseHelper(this).deleteUser(userId)
+            if (rows > 0) {
+                Toast.makeText(this, R.string.msg_conta_excluida, Toast.LENGTH_LONG).show()
+            } else {
+                Toast.makeText(this, R.string.erro_excluir_conta, Toast.LENGTH_LONG).show()
+            }
+        }
+
+        limparSessaoEIrLogin()
+    }
+
+    private fun limparSessaoEIrLogin() {
+        val sharedPref = getSharedPreferences(sharedPrefsName, MODE_PRIVATE)
         with(sharedPref.edit()) {
             remove("user_id")
             remove("user_name")
@@ -101,9 +208,29 @@ class PerfilActivity : AppCompatActivity() {
             apply()
         }
 
-        // Voltar para MainActivity
         startActivity(Intent(this, MainActivity::class.java))
         finish()
+    }
+
+    private fun mostrarMinhasCompras(userId: Long) {
+        val purchaseDb = PurchaseDatabaseHelper(this)
+        val compras = purchaseDb.getPurchasesByUserId(userId)
+
+        if (compras.isEmpty()) {
+            Toast.makeText(this, getString(R.string.nenhuma_compra), Toast.LENGTH_LONG).show()
+            return
+        }
+
+        val items = compras.map { "PRO: ${it.protocolo} - R$ ${String.format("%.2f", it.total)}" }.toTypedArray()
+        AlertDialog.Builder(this)
+            .setTitle(R.string.titulo_minhas_compras)
+            .setItems(items) { _, which ->
+                val compra = compras[which]
+                val intent = Intent(this, DetalheCompraActivity::class.java)
+                intent.putExtra("PURCHASE_ID", compra.id)
+                startActivity(intent)
+            }
+            .show()
     }
 }
 

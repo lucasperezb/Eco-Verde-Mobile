@@ -56,8 +56,15 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <LinearLayout
+                android:id="@+id/llListaProdutosCarrinho"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp" />
+
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardItemCarrinhoAlface"
+                android:id="@+id/cardCarrinhoVazio"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
@@ -67,150 +74,24 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="14dp">
+                    android:orientation="vertical"
+                    android:padding="18dp">
 
-                    <ImageView
-                        android:id="@+id/imgCarrinhoAlface"
-                        android:layout_width="46dp"
-                        android:layout_height="46dp"
-                        android:contentDescription="@string/cd_produto_alface"
-                        android:src="@mipmap/ic_launcher"
-                        app:tint="@color/green_primary" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/txtNomeItemCarrinhoAlface"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/produto_alface_nome"
-                            android:textColor="@color/green_text_primary"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/txtQtdItemCarrinhoAlface"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:text="@string/qtd_item_um"
-                            android:textColor="@color/green_text_secondary"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:gravity="end"
-                        android:orientation="vertical">
+                        android:text="@string/titulo_resumo_compra"
+                        android:textColor="@color/green_text_primary"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
 
-                        <TextView
-                            android:id="@+id/txtPrecoItemCarrinhoAlface"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/produto_alface_preco"
-                            android:textColor="@color/green_text_primary"
-                            android:textStyle="bold" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnRemoverItemCarrinhoAlface"
-                            style="@style/Widget.Material3.Button.TextButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:minHeight="0dp"
-                            android:paddingHorizontal="0dp"
-                            android:text="@string/btn_remover"
-                            android:textAllCaps="false"
-                            android:textColor="@color/green_primary" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/cardItemCarrinhoMorango"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="14dp"
-                app:cardBackgroundColor="@color/white"
-                app:cardCornerRadius="16dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:orientation="horizontal"
-                    android:padding="14dp">
-
-                    <ImageView
-                        android:id="@+id/imgCarrinhoMorango"
-                        android:layout_width="46dp"
-                        android:layout_height="46dp"
-                        android:contentDescription="@string/cd_produto_morango"
-                        android:src="@mipmap/ic_launcher"
-                        app:tint="@color/green_primary" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/txtNomeItemCarrinhoMorango"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/produto_morango_nome"
-                            android:textColor="@color/green_text_primary"
-                            android:textSize="15sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/txtQtdItemCarrinhoMorango"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="3dp"
-                            android:text="@string/qtd_item_um"
-                            android:textColor="@color/green_text_secondary"
-                            android:textSize="13sp" />
-                    </LinearLayout>
-
-                    <LinearLayout
+                    <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:gravity="end"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/txtPrecoItemCarrinhoMorango"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/produto_morango_preco"
-                            android:textColor="@color/green_text_primary"
-                            android:textStyle="bold" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnRemoverItemCarrinhoMorango"
-                            style="@style/Widget.Material3.Button.TextButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:minHeight="0dp"
-                            android:paddingHorizontal="0dp"
-                            android:text="@string/btn_remover"
-                            android:textAllCaps="false"
-                            android:textColor="@color/green_primary" />
-
-                    </LinearLayout>
+                        android:layout_marginTop="6dp"
+                        android:text="@string/carrinho_vazio_subtitulo"
+                        android:textColor="@color/green_text_secondary"
+                        android:textSize="14sp" />
 
                 </LinearLayout>
 

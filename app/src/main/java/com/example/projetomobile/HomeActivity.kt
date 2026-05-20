@@ -6,11 +6,15 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import android.widget.Toast
 import android.view.LayoutInflater
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
+import androidx.core.content.ContextCompat
+import org.json.JSONArray
+import java.text.NumberFormat
 import java.util.Locale
 
 class HomeActivity : AppCompatActivity() {
@@ -20,6 +24,8 @@ class HomeActivity : AppCompatActivity() {
     private var allProducts: List<Product> = emptyList()
     private var visibleCount = 0
     private val pageSize = 5
+    private lateinit var txtItensCarrinhoHome: TextView
+    private lateinit var txtValorCarrinhoHome: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,8 +44,11 @@ class HomeActivity : AppCompatActivity() {
         productDb = ProductDatabaseHelper(this)
         llLista = findViewById(R.id.llListaProdutosHome)
         inflater = LayoutInflater.from(this)
+        txtItensCarrinhoHome = findViewById(R.id.txtItensCarrinhoHome)
+        txtValorCarrinhoHome = findViewById(R.id.txtValorCarrinhoHome)
 
         carregarProdutos(primeiraPagina = true)
+        atualizarResumoCarrinhoHome()
 
         val bnvHomeLoja = findViewById<BottomNavigationView>(R.id.bnvHomeLoja)
         bnvHomeLoja.selectedItemId = R.id.menuProdutos
@@ -64,6 +73,7 @@ class HomeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         carregarProdutos(primeiraPagina = true)
+        atualizarResumoCarrinhoHome()
     }
 
     private fun carregarProdutos(primeiraPagina: Boolean) {
@@ -74,6 +84,37 @@ class HomeActivity : AppCompatActivity() {
 
         llLista.removeAllViews()
 
+        if (allProducts.isEmpty()) {
+            val emptyState = LinearLayout(this).apply {
+                orientation = LinearLayout.VERTICAL
+                val params = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                )
+                layoutParams = params
+                setPadding(8, 24, 8, 24)
+            }
+
+            val title = TextView(this).apply {
+                text = getString(R.string.nenhum_produto_cadastrado)
+                setTextColor(ContextCompat.getColor(this@HomeActivity, R.color.green_text_primary))
+                textSize = 16f
+                setTypeface(typeface, android.graphics.Typeface.BOLD)
+            }
+
+            val subtitle = TextView(this).apply {
+                text = getString(R.string.subtitulo_nenhum_produto)
+                setTextColor(ContextCompat.getColor(this@HomeActivity, R.color.green_text_secondary))
+                textSize = 14f
+                setPadding(0, 8, 0, 0)
+            }
+
+            emptyState.addView(title)
+            emptyState.addView(subtitle)
+            llLista.addView(emptyState)
+            return
+        }
+
         allProducts.take(visibleCount).forEach { produto ->
             val item = inflater.inflate(R.layout.product_item, llLista, false)
             val nome = item.findViewById<TextView>(R.id.txtNomeProdutoItem)
@@ -82,7 +123,7 @@ class HomeActivity : AppCompatActivity() {
             nome.text = produto.nome
             preco.text = String.format(Locale.getDefault(), "R$ %.2f", produto.preco)
             btnAdd.setOnClickListener {
-                startActivity(Intent(this, CarrinhoActivity::class.java))
+                adicionarAoCarrinho(produto)
             }
             llLista.addView(item)
         }
@@ -98,6 +139,79 @@ class HomeActivity : AppCompatActivity() {
             }
             llLista.addView(btnCarregarMais)
         }
+    }
+
+    private fun adicionarAoCarrinho(produto: Product) {
+        val sharedPref = getSharedPreferences("eco_verde_cart", MODE_PRIVATE)
+        val carrinhoJson = sharedPref.getString("carrinho_items", "[]") ?: "[]"
+        
+        try {
+            val carrinhoArray = JSONArray(carrinhoJson)
+            
+            // Verifica se o produto já existe no carrinho
+            var encontrado = false
+            for (i in 0 until carrinhoArray.length()) {
+                val obj = carrinhoArray.getJSONObject(i)
+                if (obj.getLong("id") == (produto.id ?: -1L)) {
+                    // Aumenta a quantidade
+                    obj.put("quantidade", obj.getInt("quantidade") + 1)
+                    encontrado = true
+                    break
+                }
+            }
+            
+            // Se não existe, adiciona novo item
+            if (!encontrado) {
+                val novoItem = org.json.JSONObject().apply {
+                    put("id", produto.id)
+                    put("nome", produto.nome)
+                    put("preco", produto.preco)
+                    put("quantidade", 1)
+                }
+                carrinhoArray.put(novoItem)
+            }
+            
+            // Salva no SharedPreferences
+            with(sharedPref.edit()) {
+                putString("carrinho_items", carrinhoArray.toString())
+                apply()
+            }
+
+            atualizarResumoCarrinhoHome()
+            
+            Toast.makeText(this, "${produto.nome} adicionado ao carrinho!", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, "Erro ao adicionar ao carrinho", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun atualizarResumoCarrinhoHome() {
+        val sharedPref = getSharedPreferences("eco_verde_cart", MODE_PRIVATE)
+        val carrinhoJson = sharedPref.getString("carrinho_items", "[]") ?: "[]"
+
+        try {
+            val carrinhoArray = JSONArray(carrinhoJson)
+            var quantidadeItens = 0
+            var valorTotal = 0.0
+
+            for (i in 0 until carrinhoArray.length()) {
+                val item = carrinhoArray.getJSONObject(i)
+                val quantidade = item.optInt("quantidade", 0)
+                val preco = item.optDouble("preco", 0.0)
+                quantidadeItens += quantidade
+                valorTotal += preco * quantidade
+            }
+
+            txtItensCarrinhoHome.text = getString(R.string.itens_carrinho_home_formatado, quantidadeItens)
+            txtValorCarrinhoHome.text = getString(R.string.valor_carrinho_home_formatado, formatarMoeda(valorTotal))
+        } catch (_: Exception) {
+            txtItensCarrinhoHome.text = getString(R.string.itens_carrinho_home)
+            txtValorCarrinhoHome.text = getString(R.string.valor_carrinho_home)
+        }
+    }
+
+    private fun formatarMoeda(valor: Double): String {
+        return NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR")).format(valor)
     }
 }
 
