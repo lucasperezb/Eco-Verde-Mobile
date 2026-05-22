@@ -11,7 +11,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import org.json.JSONArray
 import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
+import com.google.android.material.button.MaterialButton
 
 class DetalheCompraActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,7 +45,10 @@ class DetalheCompraActivity : AppCompatActivity() {
 
         // Preencher informações da compra
         findViewById<TextView>(R.id.txtProtocolo).text = getString(R.string.label_protocolo, purchase.protocolo)
-        findViewById<TextView>(R.id.txtDataCompra).text = getString(R.string.label_data_compra, purchase.dataCompra)
+        findViewById<TextView>(R.id.txtDataCompra).text = getString(
+            R.string.label_data_compra,
+            formatarDataCompra(purchase.dataCompra)
+        )
         findViewById<TextView>(R.id.txtStatusCompra).text = getString(R.string.label_status_compra, purchase.status)
 
         // Preencher produtos
@@ -74,12 +80,25 @@ class DetalheCompraActivity : AppCompatActivity() {
             "Frete: ${formatarMoeda(purchase.frete)}"
         findViewById<TextView>(R.id.txtTotalDetalhe).text =
             "Total: ${formatarMoeda(purchase.total)}"
+
+        findViewById<MaterialButton>(R.id.btnVoltarDetalheCompra).setOnClickListener {
+            finish()
+        }
     }
 
     private fun formatarMoeda(valor: Double): String {
         return NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR")).format(valor)
     }
+
+    private fun formatarDataCompra(dataOriginal: String): String {
+        return try {
+            val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+            val formatter = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.forLanguageTag("pt-BR"))
+            val data: Date? = parser.parse(dataOriginal)
+            if (data != null) formatter.format(data) else dataOriginal
+        } catch (_: Exception) {
+            dataOriginal
+        }
+    }
 }
-
-
 

@@ -13,7 +13,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="18dp"
+        android:layout_marginTop="12dp"
         android:layout_marginEnd="20dp"
         android:text="@string/titulo_detalhe_compra"
         android:textColor="@color/green_text_primary"
@@ -21,7 +21,28 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/imgLogoDetalheCompra" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/imgLogoDetalheCompra"
+        android:layout_width="88dp"
+        android:layout_height="88dp"
+        android:layout_marginTop="8dp"
+        app:cardBackgroundColor="@android:color/transparent"
+        app:cardCornerRadius="44dp"
+        app:cardElevation="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/cd_logo_fazenda"
+            android:scaleType="centerCrop"
+            android:src="@drawable/logo_eco_verde" />
+
+    </com.google.android.material.card.MaterialCardView>
 
     <ScrollView
         android:layout_width="0dp"
@@ -139,9 +160,17 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnVoltarDetalheCompra"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/btn_voltar"
+                android:textAllCaps="false"
+                app:cornerRadius="12dp" />
+
         </LinearLayout>
 
     </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

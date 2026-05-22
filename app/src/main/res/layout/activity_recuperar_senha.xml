@@ -26,14 +26,23 @@
             android:orientation="vertical"
             android:padding="24dp">
 
-            <ImageView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/imgLogoRecuperarSenha"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
+                android:layout_width="88dp"
+                android:layout_height="88dp"
                 android:layout_marginTop="28dp"
-                android:contentDescription="@string/cd_logo_fazenda"
-                android:src="@mipmap/ic_launcher_round"
-                app:tint="@color/green_primary" />
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="44dp"
+                app:cardElevation="0dp">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/cd_logo_fazenda"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/logo_eco_verde" />
+
+            </com.google.android.material.card.MaterialCardView>
 
             <TextView
                 android:id="@+id/txtTituloRecuperarSenha"
@@ -106,6 +115,74 @@
 
                     </com.google.android.material.textfield.TextInputLayout>
 
+                    <TextView
+                        android:id="@+id/txtPerguntaSegurancaRecuperacao"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="14dp"
+                        android:textColor="@color/green_text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        tools:text="Pergunta de segurança: Qual o nome do seu primeiro pet?" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilRespostaRecuperacao"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:hint="@string/hint_resposta_seguranca"
+                        android:visibility="gone"
+                        app:boxBackgroundMode="outline"
+                        app:boxStrokeColor="@color/green_primary"
+                        app:endIconMode="clear_text">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/txtRespostaRecuperacao"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textCapWords" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilNovaSenhaRecuperacao"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:hint="@string/hint_nova_senha"
+                        android:visibility="gone"
+                        app:boxBackgroundMode="outline"
+                        app:boxStrokeColor="@color/green_primary"
+                        app:endIconMode="password_toggle">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/txtNovaSenhaRecuperacao"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilConfirmarNovaSenhaRecuperacao"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:hint="@string/hint_confirmar_nova_senha"
+                        android:visibility="gone"
+                        app:boxBackgroundMode="outline"
+                        app:boxStrokeColor="@color/green_primary"
+                        app:endIconMode="password_toggle">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/txtConfirmarNovaSenhaRecuperacao"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword" />
+
+                    </com.google.android.material.textfield.TextInputLayout>
+
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnEnviarRecuperacao"
                         android:layout_width="match_parent"
@@ -136,4 +213,3 @@
     </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

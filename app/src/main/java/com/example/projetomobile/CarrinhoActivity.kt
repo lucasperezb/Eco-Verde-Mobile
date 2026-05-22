@@ -161,6 +161,28 @@ class CarrinhoActivity : AppCompatActivity() {
         val protocolo = generateProtocolo()
         val dataCompra = getCurrentDate()
 
+        val productDb = ProductDatabaseHelper(this)
+        for (i in 0 until carrinhoItems.length()) {
+            val item = carrinhoItems.getJSONObject(i)
+            val productId = item.optLong("id", -1L)
+            val quantidadeNoCarrinho = item.optInt("quantidade", 0)
+            val produtoAtual = productDb.getProduct(productId)
+
+            if (produtoAtual == null) {
+                Toast.makeText(this, "Um produto do carrinho não existe mais.", Toast.LENGTH_LONG).show()
+                return
+            }
+
+            if (quantidadeNoCarrinho > produtoAtual.estoque) {
+                Toast.makeText(
+                    this,
+                    "Estoque insuficiente para ${produtoAtual.nome}. Disponível: ${produtoAtual.estoque}.",
+                    Toast.LENGTH_LONG
+                ).show()
+                return
+            }
+        }
+
         val frete = if (subtotalAtual > 0.0) freteBase else 0.0
         val total = subtotalAtual + frete
 
@@ -172,13 +194,37 @@ class CarrinhoActivity : AppCompatActivity() {
             frete = frete,
             total = total,
             produtos = carrinhoItems.toString(),
-            status = "confirmada"
+            status = "Confirmada - pagamento na entrega"
         )
 
         val purchaseDb = PurchaseDatabaseHelper(this)
         val id = purchaseDb.insertPurchase(purchase)
         
         if (id != -1L) {
+            var erroAtualizarEstoque = false
+            for (i in 0 until carrinhoItems.length()) {
+                val item = carrinhoItems.getJSONObject(i)
+                val productId = item.optLong("id", -1L)
+                val quantidadeNoCarrinho = item.optInt("quantidade", 0)
+                val produtoAtual = productDb.getProduct(productId)
+                if (produtoAtual != null) {
+                    val novoEstoque = (produtoAtual.estoque - quantidadeNoCarrinho).coerceAtLeast(0)
+                    val rows = productDb.updateProduct(produtoAtual.copy(estoque = novoEstoque))
+                    if (rows <= 0) {
+                        erroAtualizarEstoque = true
+                        break
+                    }
+                } else {
+                    erroAtualizarEstoque = true
+                    break
+                }
+            }
+
+            if (erroAtualizarEstoque) {
+                Toast.makeText(this, "Compra salva, mas houve erro ao atualizar estoque.", Toast.LENGTH_LONG).show()
+                return
+            }
+
             Toast.makeText(this, getString(R.string.msg_compra_realizada, protocolo), Toast.LENGTH_LONG).show()
             
             // Limpar carrinho
@@ -218,9 +264,10 @@ class CarrinhoActivity : AppCompatActivity() {
     }
 
     private fun generateProtocolo(): String {
-        val timestamp = System.currentTimeMillis().toString().takeLast(8)
-        val random = kotlin.random.Random.nextInt(10000, 99999)
-        return "PRO-$timestamp-$random"
+        val dataHora = java.text.SimpleDateFormat("yyMMdd-HHmm", Locale.forLanguageTag("pt-BR"))
+            .format(java.util.Date())
+        val sufixo = kotlin.random.Random.nextInt(100, 1000)
+        return "EV-$dataHora-$sufixo"
     }
 
     private fun getCurrentDate(): String {

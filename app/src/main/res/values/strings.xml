@@ -14,13 +14,15 @@
     <string name="boas_vindas_cadastro">Preencha seus dados</string>
     <string name="hint_nome">Nome completo</string>
     <string name="hint_endereco">Endereco</string>
+    <string name="hint_pergunta_seguranca">Pergunta de seguranca</string>
+    <string name="hint_resposta_seguranca">Resposta de seguranca</string>
     <string name="hint_confirmar_senha">Confirmar senha</string>
     <string name="btn_criar_conta_cadastro">Criar conta</string>
     <string name="ja_tenho_conta">Ja tenho conta</string>
     <string name="titulo_recuperar_senha">Recuperar senha</string>
     <string name="subtitulo_recuperar_senha">Volte para sua fazenda digital</string>
     <string name="boas_vindas_recuperar_senha">Esqueceu sua senha?</string>
-    <string name="descricao_recuperar_senha">Informe seu e-mail para receber as instrucoes de recuperacao.</string>
+    <string name="descricao_recuperar_senha">Informe seu e-mail e responda sua pergunta de seguranca para redefinir a senha.</string>
     <string name="hint_email_recuperacao">E-mail cadastrado</string>
     <string name="btn_enviar_recuperacao">Enviar recuperacao</string>
     <string name="voltar_login_recuperacao">Voltar para login</string>
@@ -61,6 +63,7 @@
     <string name="frete_carrinho_formatado">Frete: %1$s</string>
     <string name="total_carrinho_formatado">Total: %1$s</string>
     <string name="btn_finalizar_compra">Finalizar compra</string>
+    <string name="btn_voltar">Voltar</string>
     <string name="titulo_perfil">Perfil</string>
     <string name="nome_perfil_mock">Lucas Perez</string>
     <string name="email_perfil_mock">lucas@fazendaurbana.com</string>
@@ -69,6 +72,7 @@
     <string name="subtitulo_nenhum_produto">Use o painel do admin para adicionar produtos ao estoque.</string>
     <string name="btn_minhas_compras">Minhas compras</string>
     <string name="btn_editar_perfil">Alterar senha</string>
+    <string name="btn_editar_endereco">Alterar endereco</string>
     <string name="btn_excluir_conta">Excluir conta</string>
     <string name="titulo_alterar_senha">Alterar senha</string>
     <string name="hint_senha_atual">Senha atual</string>
@@ -104,4 +108,18 @@
     <string name="erro_excluir_conta">Nao foi possivel excluir a conta.</string>
     <string name="erro_usuario_nao_encontrado">Usuario nao encontrado.</string>
     <string name="erro_salvar_senha">Nao foi possivel atualizar a senha.</string>
+    <string name="label_endereco">Endereco: %1$s</string>
+    <string name="endereco_nao_informado">Nao informado</string>
+    <string name="titulo_alterar_endereco">Alterar endereco</string>
+    <string name="hint_endereco_perfil">Novo endereco</string>
+    <string name="msg_endereco_atualizado">Endereco atualizado com sucesso.</string>
+    <string name="erro_endereco_vazio">Informe um endereco valido.</string>
+    <string name="erro_salvar_endereco">Nao foi possivel atualizar o endereco.</string>
+
+    <string-array name="perguntas_seguranca">
+        <item>Qual o nome do seu primeiro pet?</item>
+        <item>Qual a cidade em que voce nasceu?</item>
+        <item>Qual era o apelido da sua infancia?</item>
+        <item>Qual o nome da sua escola primaria?</item>
+    </string-array>
 </resources>

@@ -14,7 +14,8 @@ data class User(
     val email: String,
     val password: String,
     val endereco: String = "",
+    val securityQuestion: String = "",
+    val securityAnswer: String = "",
     val role: String = "user" // "user" or "admin"
 )
-
 

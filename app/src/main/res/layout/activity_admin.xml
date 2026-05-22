@@ -1,9 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:gravity="center_horizontal"
     android:orientation="vertical"
     android:padding="16dp">
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/imgLogoAdmin"
+        android:layout_width="88dp"
+        android:layout_height="88dp"
+        android:layout_marginTop="36dp"
+        app:cardBackgroundColor="@android:color/transparent"
+        app:cardCornerRadius="44dp"
+        app:cardElevation="0dp">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/cd_logo_fazenda"
+            android:scaleType="centerCrop"
+            android:src="@drawable/logo_eco_verde" />
+
+    </com.google.android.material.card.MaterialCardView>
 
     <TextView
         android:id="@+id/tvAdminTitle"
@@ -38,4 +58,3 @@
         android:dividerHeight="8dp" />
 
 </LinearLayout>
-

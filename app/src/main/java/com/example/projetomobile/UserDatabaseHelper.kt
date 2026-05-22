@@ -29,6 +29,9 @@ class UserDatabaseHelper(context: Context) {
             put(DatabaseHelper.USER_COL_EMAIL, user.email)
             put(DatabaseHelper.USER_COL_PASSWORD, hashPassword(user.password))
             put(DatabaseHelper.USER_COL_ROLE, user.role)
+            put(DatabaseHelper.USER_COL_ENDERECO, user.endereco)
+            put(DatabaseHelper.USER_COL_SECURITY_QUESTION, user.securityQuestion)
+            put(DatabaseHelper.USER_COL_SECURITY_ANSWER, normalizeSecurityAnswer(user.securityAnswer))
         }
         val id = db.insert(DatabaseHelper.TABLE_USER, null, values)
         user.id = if (id == -1L) null else id
@@ -50,7 +53,10 @@ class UserDatabaseHelper(context: Context) {
                 DatabaseHelper.USER_COL_NOME,
                 DatabaseHelper.USER_COL_EMAIL,
                 DatabaseHelper.USER_COL_PASSWORD,
-                DatabaseHelper.USER_COL_ROLE
+                DatabaseHelper.USER_COL_ROLE,
+                DatabaseHelper.USER_COL_ENDERECO,
+                DatabaseHelper.USER_COL_SECURITY_QUESTION,
+                DatabaseHelper.USER_COL_SECURITY_ANSWER
             ),
             "${DatabaseHelper.USER_COL_ID} = ?",
             arrayOf(id.toString()),
@@ -65,7 +71,19 @@ class UserDatabaseHelper(context: Context) {
             val email = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_EMAIL))
             val password = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_PASSWORD))
             val role = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_ROLE))
-            user = User(uid, nome, email, password, role)
+            val endereco = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_ENDERECO))
+            val securityQuestion = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_SECURITY_QUESTION))
+            val securityAnswer = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_SECURITY_ANSWER))
+            user = User(
+                id = uid,
+                nome = nome,
+                email = email,
+                password = password,
+                endereco = endereco,
+                securityQuestion = securityQuestion,
+                securityAnswer = securityAnswer,
+                role = role
+            )
         }
         cursor.close()
         db.close()
@@ -86,7 +104,10 @@ class UserDatabaseHelper(context: Context) {
                 DatabaseHelper.USER_COL_NOME,
                 DatabaseHelper.USER_COL_EMAIL,
                 DatabaseHelper.USER_COL_PASSWORD,
-                DatabaseHelper.USER_COL_ROLE
+                DatabaseHelper.USER_COL_ROLE,
+                DatabaseHelper.USER_COL_ENDERECO,
+                DatabaseHelper.USER_COL_SECURITY_QUESTION,
+                DatabaseHelper.USER_COL_SECURITY_ANSWER
             ),
             null,
             null,
@@ -101,7 +122,21 @@ class UserDatabaseHelper(context: Context) {
                 val email = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_EMAIL))
                 val password = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_PASSWORD))
                 val role = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_ROLE))
-                users.add(User(uid, nome, email, password, role))
+                val endereco = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_ENDERECO))
+                val securityQuestion = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_SECURITY_QUESTION))
+                val securityAnswer = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_SECURITY_ANSWER))
+                users.add(
+                    User(
+                        id = uid,
+                        nome = nome,
+                        email = email,
+                        password = password,
+                        endereco = endereco,
+                        securityQuestion = securityQuestion,
+                        securityAnswer = securityAnswer,
+                        role = role
+                    )
+                )
             } while (cursor.moveToNext())
         }
         cursor.close()
@@ -124,7 +159,10 @@ class UserDatabaseHelper(context: Context) {
                 DatabaseHelper.USER_COL_NOME,
                 DatabaseHelper.USER_COL_EMAIL,
                 DatabaseHelper.USER_COL_PASSWORD,
-                DatabaseHelper.USER_COL_ROLE
+                DatabaseHelper.USER_COL_ROLE,
+                DatabaseHelper.USER_COL_ENDERECO,
+                DatabaseHelper.USER_COL_SECURITY_QUESTION,
+                DatabaseHelper.USER_COL_SECURITY_ANSWER
             ),
             "${DatabaseHelper.USER_COL_EMAIL} = ?",
             arrayOf(email),
@@ -138,12 +176,39 @@ class UserDatabaseHelper(context: Context) {
             val uid = cursor.getLong(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_ID))
             val nome = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_NOME))
             val userEmail = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_EMAIL))
-            val hashedPassword = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_PASSWORD))
+            val storedPassword = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_PASSWORD))
             val role = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_ROLE))
+            val endereco = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_ENDERECO))
+            val securityQuestion = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_SECURITY_QUESTION))
+            val securityAnswer = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_SECURITY_ANSWER))
 
-            // Verificar se a senha corresponde à hash armazenada
-            if (hashPassword(password) == hashedPassword) {
-                user = User(uid, nome, userEmail, hashedPassword, role)
+            // Compatibilidade: aceita senha em hash e também legado em texto puro.
+            val inputPasswordHash = hashPassword(password)
+            val isPasswordValid = (inputPasswordHash == storedPassword) || (password == storedPassword)
+
+            if (isPasswordValid) {
+                // Migra automaticamente senhas legadas (texto puro) para hash no primeiro login.
+                if (password == storedPassword) {
+                    val values = ContentValues().apply {
+                        put(DatabaseHelper.USER_COL_PASSWORD, inputPasswordHash)
+                    }
+                    db.update(
+                        DatabaseHelper.TABLE_USER,
+                        values,
+                        "${DatabaseHelper.USER_COL_ID} = ?",
+                        arrayOf(uid.toString())
+                    )
+                }
+                user = User(
+                    id = uid,
+                    nome = nome,
+                    email = userEmail,
+                    password = inputPasswordHash,
+                    endereco = endereco,
+                    securityQuestion = securityQuestion,
+                    securityAnswer = securityAnswer,
+                    role = role
+                )
             }
         }
         cursor.close()
@@ -163,6 +228,9 @@ class UserDatabaseHelper(context: Context) {
             put(DatabaseHelper.USER_COL_EMAIL, user.email)
             put(DatabaseHelper.USER_COL_PASSWORD, hashPassword(user.password))
             put(DatabaseHelper.USER_COL_ROLE, user.role)
+            put(DatabaseHelper.USER_COL_ENDERECO, user.endereco)
+            put(DatabaseHelper.USER_COL_SECURITY_QUESTION, user.securityQuestion)
+            put(DatabaseHelper.USER_COL_SECURITY_ANSWER, normalizeSecurityAnswer(user.securityAnswer))
         }
         val rowsAffected = db.update(
             DatabaseHelper.TABLE_USER,
@@ -241,13 +309,87 @@ class UserDatabaseHelper(context: Context) {
         return rowsAffected
     }
 
+    fun updateAddress(userId: Long, endereco: String): Boolean {
+        val db = dbHelper.writableDatabase
+        val values = ContentValues().apply {
+            put(DatabaseHelper.USER_COL_ENDERECO, endereco)
+        }
+        val rows = db.update(
+            DatabaseHelper.TABLE_USER,
+            values,
+            "${DatabaseHelper.USER_COL_ID} = ?",
+            arrayOf(userId.toString())
+        )
+        db.close()
+        return rows > 0
+    }
+
+    fun getSecurityQuestionByEmail(email: String): String? {
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            DatabaseHelper.TABLE_USER,
+            arrayOf(DatabaseHelper.USER_COL_SECURITY_QUESTION),
+            "${DatabaseHelper.USER_COL_EMAIL} = ?",
+            arrayOf(email.trim()),
+            null,
+            null,
+            null
+        )
+        val question = if (cursor.moveToFirst()) {
+            cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_SECURITY_QUESTION))
+        } else {
+            null
+        }
+        cursor.close()
+        db.close()
+        return question
+    }
+
+    fun validateSecurityAnswer(email: String, answer: String): Boolean {
+        val db = dbHelper.readableDatabase
+        val cursor = db.query(
+            DatabaseHelper.TABLE_USER,
+            arrayOf(DatabaseHelper.USER_COL_SECURITY_ANSWER),
+            "${DatabaseHelper.USER_COL_EMAIL} = ?",
+            arrayOf(email.trim()),
+            null,
+            null,
+            null
+        )
+        val isValid = if (cursor.moveToFirst()) {
+            val storedAnswer = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.USER_COL_SECURITY_ANSWER))
+            storedAnswer == normalizeSecurityAnswer(answer)
+        } else {
+            false
+        }
+        cursor.close()
+        db.close()
+        return isValid
+    }
+
+    fun resetPasswordByEmail(email: String, newPassword: String): Boolean {
+        val db = dbHelper.writableDatabase
+        val values = ContentValues().apply {
+            put(DatabaseHelper.USER_COL_PASSWORD, hashPassword(newPassword))
+        }
+        val rows = db.update(
+            DatabaseHelper.TABLE_USER,
+            values,
+            "${DatabaseHelper.USER_COL_EMAIL} = ?",
+            arrayOf(email.trim())
+        )
+        db.close()
+        return rows > 0
+    }
+
     // Simple SHA-256 hash for password storage
     private fun hashPassword(password: String): String {
         val md = java.security.MessageDigest.getInstance("SHA-256")
         val bytes = md.digest(password.toByteArray(Charsets.UTF_8))
         return bytes.joinToString("") { "%02x".format(it) }
     }
+
+    private fun normalizeSecurityAnswer(answer: String): String {
+        return answer.trim().lowercase()
+    }
 }
-
-
-

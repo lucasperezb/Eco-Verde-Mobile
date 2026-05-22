@@ -1,5 +1,6 @@
 package com.example.projetomobile
 
+import android.content.Intent
 import androidx.activity.OnBackPressedCallback
 import android.os.Bundle
 import android.text.InputType
@@ -50,6 +51,11 @@ class AdminActivity : AppCompatActivity() {
         })
     }
 
+    override fun onResume() {
+        super.onResume()
+        refreshProductList()
+    }
+
     private fun showAdminMenu() {
         val options = arrayOf("Listar produtos", "Adicionar produto", "Editar estoque", "Deletar produto", "Sair")
         AlertDialog.Builder(this)
@@ -60,11 +66,27 @@ class AdminActivity : AppCompatActivity() {
                     1 -> addProductDialog()
                     2 -> editStockDialog()
                     3 -> deleteProductDialog()
-                    4 -> finish()
+                    4 -> logoutAdmin()
                 }
             }
             .setCancelable(false)
             .show()
+    }
+
+    private fun logoutAdmin() {
+        val sharedPref = getSharedPreferences("eco_verde_prefs", MODE_PRIVATE)
+        with(sharedPref.edit()) {
+            remove("user_id")
+            remove("user_name")
+            remove("user_email")
+            apply()
+        }
+
+        val intent = Intent(this, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        finish()
     }
 
     private fun listProducts() {
@@ -206,7 +228,5 @@ class AdminActivity : AppCompatActivity() {
 
     // Back press handled via OnBackPressedDispatcher callback
 }
-
-
 
 

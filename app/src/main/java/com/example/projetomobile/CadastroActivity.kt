@@ -2,6 +2,8 @@ package com.example.projetomobile
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -27,9 +29,22 @@ class CadastroActivity : AppCompatActivity() {
             finish()//fecha tela atual
         }
 
+        val perguntas = resources.getStringArray(R.array.perguntas_seguranca)
+        val perguntaField = findViewById<AutoCompleteTextView>(R.id.txtPerguntaSegurancaCadastro)
+        perguntaField.setAdapter(
+            ArrayAdapter(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                perguntas
+            )
+        )
+
         findViewById<MaterialButton>(R.id.btnCriarContaCadastro).setOnClickListener {
             val nome = findViewById<TextInputEditText>(R.id.txtNome).text.toString().trim()
             val email = findViewById<TextInputEditText>(R.id.txtEmailCadastro).text.toString().trim()
+            val endereco = findViewById<TextInputEditText>(R.id.txtEnderecoCadastro).text.toString().trim()
+            val perguntaSeguranca = perguntaField.text.toString().trim()
+            val respostaSeguranca = findViewById<TextInputEditText>(R.id.txtRespostaSegurancaCadastro).text.toString().trim()
             val senha = findViewById<TextInputEditText>(R.id.txtSenhaCadastro).text.toString()
             val confirmaSenha = findViewById<TextInputEditText>(R.id.txtConfirmarSenha).text.toString()
 
@@ -50,6 +65,21 @@ class CadastroActivity : AppCompatActivity() {
                 !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
                     findViewById<TextInputEditText>(R.id.txtEmailCadastro).error = "Email inválido"
                     Toast.makeText(this, "Email inválido", Toast.LENGTH_LONG).show()
+                    erroValidacao = true
+                }
+                endereco.isEmpty() -> {
+                    findViewById<TextInputEditText>(R.id.txtEnderecoCadastro).error = "Campo obrigatório"
+                    Toast.makeText(this, "Por favor, preencha o endereço", Toast.LENGTH_LONG).show()
+                    erroValidacao = true
+                }
+                perguntaSeguranca.isEmpty() -> {
+                    perguntaField.error = "Campo obrigatório"
+                    Toast.makeText(this, "Selecione uma pergunta de segurança", Toast.LENGTH_LONG).show()
+                    erroValidacao = true
+                }
+                respostaSeguranca.isEmpty() -> {
+                    findViewById<TextInputEditText>(R.id.txtRespostaSegurancaCadastro).error = "Campo obrigatório"
+                    Toast.makeText(this, "Por favor, preencha a resposta de segurança", Toast.LENGTH_LONG).show()
                     erroValidacao = true
                 }
                 senha.isEmpty() -> {
@@ -92,7 +122,15 @@ class CadastroActivity : AppCompatActivity() {
                                     val codigo = input.text.toString().trim()
                                     if (codigo == "SUPERADMIN2026") {
                                         val userDb = UserDatabaseHelper(this)
-                                        val novoUser = User(nome = nome, email = email, password = senha, role = "admin")
+                                        val novoUser = User(
+                                            nome = nome,
+                                            email = email,
+                                            password = senha,
+                                            endereco = endereco,
+                                            securityQuestion = perguntaSeguranca,
+                                            securityAnswer = respostaSeguranca,
+                                            role = "admin"
+                                        )
                                         val id = userDb.insertUser(novoUser)
                                         if (id != -1L) {
                                             AlertDialog.Builder(this)
@@ -117,7 +155,14 @@ class CadastroActivity : AppCompatActivity() {
                         .setNegativeButton("Não") { _, _ ->
                             try {
                                 val userDb = UserDatabaseHelper(this)
-                                val novoUser = User(nome = nome, email = email, password = senha)
+                                val novoUser = User(
+                                    nome = nome,
+                                    email = email,
+                                    password = senha,
+                                    endereco = endereco,
+                                    securityQuestion = perguntaSeguranca,
+                                    securityAnswer = respostaSeguranca
+                                )
                                 val id = userDb.insertUser(novoUser)
                                 if (id != -1L) {
                                     // Mostrar AlertDialog de sucesso

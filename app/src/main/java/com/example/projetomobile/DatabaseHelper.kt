@@ -13,7 +13,7 @@ import android.database.sqlite.SQLiteOpenHelper
 class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
     companion object {
         const val DATABASE_NAME = "eco_verde.db"
-        const val DATABASE_VERSION = 6
+        const val DATABASE_VERSION = 9
 
         // Tabela users
         const val TABLE_USER = "users"
@@ -22,6 +22,9 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val USER_COL_EMAIL = "email"
         const val USER_COL_PASSWORD = "password"
         const val USER_COL_ROLE = "role"
+        const val USER_COL_ENDERECO = "endereco"
+        const val USER_COL_SECURITY_QUESTION = "security_question"
+        const val USER_COL_SECURITY_ANSWER = "security_answer"
 
         private const val SQL_CREATE_TABLE_USER =
             "CREATE TABLE $TABLE_USER (" +
@@ -29,7 +32,10 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     "$USER_COL_NOME TEXT NOT NULL," +
                     "$USER_COL_EMAIL TEXT NOT NULL UNIQUE," +
                     "$USER_COL_PASSWORD TEXT NOT NULL," +
-                    "$USER_COL_ROLE TEXT NOT NULL DEFAULT 'user'" +
+                    "$USER_COL_ROLE TEXT NOT NULL DEFAULT 'user'," +
+                    "$USER_COL_ENDERECO TEXT NOT NULL DEFAULT ''," +
+                    "$USER_COL_SECURITY_QUESTION TEXT NOT NULL DEFAULT ''," +
+                    "$USER_COL_SECURITY_ANSWER TEXT NOT NULL DEFAULT ''" +
                     ")"
 
         // Tabela products
@@ -125,6 +131,87 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             db.execSQL("DROP TABLE IF EXISTS $TABLE_PRODUCT")
             db.execSQL(SQL_CREATE_TABLE_PRODUCT)
         }
+        if (oldVersion < 7) {
+            ensureUsersRoleColumn(db)
+        }
+        if (oldVersion < 8) {
+            ensureUsersAddressColumn(db)
+        }
+        if (oldVersion < 9) {
+            ensureUsersSecurityColumns(db)
+        }
+    }
+
+    override fun onOpen(db: SQLiteDatabase) {
+        super.onOpen(db)
+        ensureUsersRoleColumn(db)
+        ensureUsersAddressColumn(db)
+        ensureUsersSecurityColumns(db)
+    }
+
+    private fun ensureUsersRoleColumn(db: SQLiteDatabase) {
+        var hasRoleColumn = false
+        val cursor = db.rawQuery("PRAGMA table_info($TABLE_USER)", null)
+        try {
+            val nameIndex = cursor.getColumnIndex("name")
+            while (cursor.moveToNext()) {
+                if (nameIndex >= 0 && cursor.getString(nameIndex) == USER_COL_ROLE) {
+                    hasRoleColumn = true
+                    break
+                }
+            }
+        } finally {
+            cursor.close()
+        }
+
+        if (!hasRoleColumn) {
+            db.execSQL("ALTER TABLE $TABLE_USER ADD COLUMN $USER_COL_ROLE TEXT NOT NULL DEFAULT 'user'")
+        }
+    }
+
+    private fun ensureUsersAddressColumn(db: SQLiteDatabase) {
+        var hasAddressColumn = false
+        val cursor = db.rawQuery("PRAGMA table_info($TABLE_USER)", null)
+        try {
+            val nameIndex = cursor.getColumnIndex("name")
+            while (cursor.moveToNext()) {
+                if (nameIndex >= 0 && cursor.getString(nameIndex) == USER_COL_ENDERECO) {
+                    hasAddressColumn = true
+                    break
+                }
+            }
+        } finally {
+            cursor.close()
+        }
+
+        if (!hasAddressColumn) {
+            db.execSQL("ALTER TABLE $TABLE_USER ADD COLUMN $USER_COL_ENDERECO TEXT NOT NULL DEFAULT ''")
+        }
+    }
+
+    private fun ensureUsersSecurityColumns(db: SQLiteDatabase) {
+        var hasQuestionColumn = false
+        var hasAnswerColumn = false
+        val cursor = db.rawQuery("PRAGMA table_info($TABLE_USER)", null)
+        try {
+            val nameIndex = cursor.getColumnIndex("name")
+            while (cursor.moveToNext()) {
+                if (nameIndex < 0) continue
+                when (cursor.getString(nameIndex)) {
+                    USER_COL_SECURITY_QUESTION -> hasQuestionColumn = true
+                    USER_COL_SECURITY_ANSWER -> hasAnswerColumn = true
+                }
+            }
+        } finally {
+            cursor.close()
+        }
+
+        if (!hasQuestionColumn) {
+            db.execSQL("ALTER TABLE $TABLE_USER ADD COLUMN $USER_COL_SECURITY_QUESTION TEXT NOT NULL DEFAULT ''")
+        }
+        if (!hasAnswerColumn) {
+            db.execSQL("ALTER TABLE $TABLE_USER ADD COLUMN $USER_COL_SECURITY_ANSWER TEXT NOT NULL DEFAULT ''")
+        }
     }
 
 
@@ -135,9 +222,6 @@ class DatabaseHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return bytes.joinToString("") { "%02x".format(it) }
     }
 }
-
-
-
 
 
 

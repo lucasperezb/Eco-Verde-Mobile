@@ -9,13 +9,16 @@ import androidx.core.view.WindowInsetsCompat
 import android.widget.Toast
 import android.view.LayoutInflater
 import android.widget.LinearLayout
+import android.widget.ImageView
 import android.widget.TextView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.button.MaterialButton
 import androidx.core.content.ContextCompat
 import org.json.JSONArray
 import java.text.NumberFormat
+import java.text.Normalizer
 import java.util.Locale
+import org.json.JSONObject
 
 class HomeActivity : AppCompatActivity() {
     private lateinit var productDb: ProductDatabaseHelper
@@ -119,9 +122,14 @@ class HomeActivity : AppCompatActivity() {
             val item = inflater.inflate(R.layout.product_item, llLista, false)
             val nome = item.findViewById<TextView>(R.id.txtNomeProdutoItem)
             val preco = item.findViewById<TextView>(R.id.txtPrecoProdutoItem)
+            val estoque = item.findViewById<TextView>(R.id.txtEstoqueProdutoItem)
+            val imagem = item.findViewById<ImageView>(R.id.imgProdutoItem)
             val btnAdd = item.findViewById<MaterialButton>(R.id.btnAdicionarProdutoItem)
             nome.text = produto.nome
             preco.text = String.format(Locale.getDefault(), "R$ %.2f", produto.preco)
+            estoque.text = "Estoque: ${produto.estoque}"
+            imagem.setImageResource(getProductImageRes(produto))
+            btnAdd.isEnabled = produto.estoque > 0
             btnAdd.setOnClickListener {
                 adicionarAoCarrinho(produto)
             }
@@ -144,15 +152,33 @@ class HomeActivity : AppCompatActivity() {
     private fun adicionarAoCarrinho(produto: Product) {
         val sharedPref = getSharedPreferences("eco_verde_cart", MODE_PRIVATE)
         val carrinhoJson = sharedPref.getString("carrinho_items", "[]") ?: "[]"
-        
+
         try {
+            val productId = produto.id
+            if (productId == null) {
+                Toast.makeText(this, "Produto inválido para compra.", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val estoqueAtual = productDb.getProduct(productId)?.estoque ?: 0
+            if (estoqueAtual <= 0) {
+                Toast.makeText(this, "${produto.nome} está sem estoque.", Toast.LENGTH_SHORT).show()
+                carregarProdutos(primeiraPagina = true)
+                return
+            }
+
             val carrinhoArray = JSONArray(carrinhoJson)
-            
+            val quantidadeAtualNoCarrinho = getQuantidadeNoCarrinho(carrinhoArray, productId)
+            if (quantidadeAtualNoCarrinho >= estoqueAtual) {
+                Toast.makeText(this, "Limite de estoque atingido para ${produto.nome}.", Toast.LENGTH_SHORT).show()
+                return
+            }
+
             // Verifica se o produto já existe no carrinho
             var encontrado = false
             for (i in 0 until carrinhoArray.length()) {
                 val obj = carrinhoArray.getJSONObject(i)
-                if (obj.getLong("id") == (produto.id ?: -1L)) {
+                if (obj.getLong("id") == productId) {
                     // Aumenta a quantidade
                     obj.put("quantidade", obj.getInt("quantidade") + 1)
                     encontrado = true
@@ -163,7 +189,7 @@ class HomeActivity : AppCompatActivity() {
             // Se não existe, adiciona novo item
             if (!encontrado) {
                 val novoItem = org.json.JSONObject().apply {
-                    put("id", produto.id)
+                    put("id", productId)
                     put("nome", produto.nome)
                     put("preco", produto.preco)
                     put("quantidade", 1)
@@ -213,5 +239,39 @@ class HomeActivity : AppCompatActivity() {
     private fun formatarMoeda(valor: Double): String {
         return NumberFormat.getCurrencyInstance(Locale.forLanguageTag("pt-BR")).format(valor)
     }
-}
 
+    private fun getQuantidadeNoCarrinho(carrinhoArray: JSONArray, productId: Long): Int {
+        for (i in 0 until carrinhoArray.length()) {
+            val item: JSONObject = carrinhoArray.getJSONObject(i)
+            if (item.optLong("id", -1L) == productId) {
+                return item.optInt("quantidade", 0)
+            }
+        }
+        return 0
+    }
+
+    private fun getProductImageRes(produto: Product): Int {
+        val key = normalizeForMatch(
+            listOf(produto.nome, produto.categoria, produto.imagemUrl)
+            .joinToString(" ")
+        )
+
+        return when {
+            key.contains("banana") -> R.drawable.produto_banana
+            key.contains("tomate") -> R.drawable.produto_tomate
+            key.contains("morango") || key.contains("strawberry") -> R.drawable.produto_morango
+            key.contains("laranja") || key.contains("orange") || key.contains("citrus") -> R.drawable.produto_laranja
+            key.contains("maca") || key.contains("maçã") || key.contains("apple") -> R.drawable.produto_maca
+            key.contains("cenoura") || key.contains("carrot") -> R.drawable.produto_cenoura
+            key.contains("brocolis") || key.contains("brócolis") || key.contains("broccoli") -> R.drawable.produto_brocolis
+            key.contains("batata") || key.contains("potato") -> R.drawable.produto_batata
+            key.contains("alface") || key.contains("lettuce") -> R.drawable.produto_alface
+            else -> R.drawable.produto_alface
+        }
+    }
+
+    private fun normalizeForMatch(value: String): String {
+        val normalized = Normalizer.normalize(value, Normalizer.Form.NFD)
+        return normalized.replace("\\p{M}+".toRegex(), "").lowercase()
+    }
+}

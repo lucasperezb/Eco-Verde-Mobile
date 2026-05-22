@@ -46,6 +46,10 @@ class PerfilActivity : AppCompatActivity() {
             mostrarDialogoAlterarSenha()
         }
 
+        findViewById<MaterialButton>(R.id.btnEditarEndereco).setOnClickListener {
+            mostrarDialogoAlterarEndereco()
+        }
+
         // Botão de exclusão da conta
         findViewById<MaterialButton>(R.id.btnExcluirConta).setOnClickListener {
             mostrarDialogoExcluirConta()
@@ -85,7 +89,8 @@ class PerfilActivity : AppCompatActivity() {
                     // Exibir dados do usuário
                     findViewById<TextView>(R.id.txtNomePerfil).text = user.nome
                     findViewById<TextView>(R.id.txtEmailPerfil).text = user.email
-                    findViewById<TextView>(R.id.txtInfoPerfil).text = "ID do usuário: ${user.id}"
+                    val endereco = user.endereco.ifBlank { getString(R.string.endereco_nao_informado) }
+                    findViewById<TextView>(R.id.txtInfoPerfil).text = getString(R.string.label_endereco, endereco)
                 } else {
                     // Usuário não encontrado, fazer logout
                     limparSessaoEIrLogin()
@@ -183,6 +188,42 @@ class PerfilActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun mostrarDialogoAlterarEndereco() {
+        val sharedPref = getSharedPreferences(sharedPrefsName, MODE_PRIVATE)
+        val userId = sharedPref.getLong("user_id", -1L)
+        if (userId == -1L) {
+            limparSessaoEIrLogin()
+            return
+        }
+
+        val userAtual = UserDatabaseHelper(this).getUser(userId)
+        val input = EditText(this).apply {
+            hint = getString(R.string.hint_endereco_perfil)
+            setText(userAtual?.endereco ?: "")
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.titulo_alterar_endereco)
+            .setView(input)
+            .setPositiveButton(R.string.dialog_btn_salvar) { _, _ ->
+                val novoEndereco = input.text.toString().trim()
+                if (novoEndereco.isBlank()) {
+                    Toast.makeText(this, R.string.erro_endereco_vazio, Toast.LENGTH_LONG).show()
+                    return@setPositiveButton
+                }
+
+                val sucesso = UserDatabaseHelper(this).updateAddress(userId, novoEndereco)
+                if (sucesso) {
+                    findViewById<TextView>(R.id.txtInfoPerfil).text = getString(R.string.label_endereco, novoEndereco)
+                    Toast.makeText(this, R.string.msg_endereco_atualizado, Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(this, R.string.erro_salvar_endereco, Toast.LENGTH_LONG).show()
+                }
+            }
+            .setNegativeButton(R.string.dialog_btn_cancelar, null)
+            .show()
+    }
+
     private fun excluirContaAtual() {
         val sharedPref = getSharedPreferences(sharedPrefsName, MODE_PRIVATE)
         val userId = sharedPref.getLong("user_id", -1L)
@@ -233,5 +274,3 @@ class PerfilActivity : AppCompatActivity() {
             .show()
     }
 }
-
-
