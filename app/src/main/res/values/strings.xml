@@ -13,6 +13,7 @@
     <string name="subtitulo_cadastro">Monte sua horta urbana em poucos passos</string>
     <string name="boas_vindas_cadastro">Preencha seus dados</string>
     <string name="hint_nome">Nome completo</string>
+    <string name="hint_endereco">Endereco</string>
     <string name="hint_confirmar_senha">Confirmar senha</string>
     <string name="btn_criar_conta_cadastro">Criar conta</string>
     <string name="ja_tenho_conta">Ja tenho conta</string>
